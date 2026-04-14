@@ -19,7 +19,6 @@ OLIVEYOUNG_URL = (
     "&t_gnb_type=%EC%98%A4%ED%8A%B9&t_swiping_type=N"
 )
 
-# GitHub Actions에서는 환경변수로, 로컬에서는 직접 입력
 NOTION_TOKEN   = os.environ.get("NOTION_TOKEN", "여기에_Notion_Token_입력")
 NOTION_PAGE_ID = os.environ.get("NOTION_PAGE_ID", "33e90b577e73802d8a76d90412267d4c")
 GITHUB_TOKEN   = os.environ.get("GITHUB_TOKEN", "여기에_GitHub_Token_입력")
@@ -59,12 +58,26 @@ def get_driver():
     )
 
 
+def scroll_to_bottom(driver):
+    """페이지 끝까지 스크롤해서 모든 상품 로딩"""
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # 로딩 대기
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:  # 더 이상 로딩 없으면 종료
+            break
+        last_height = new_height
+    print("  ✅ 스크롤 완료")
+
+
 def crawl_image_urls():
     print(f"[{today}] 올리브영 크롤링 시작...")
     driver = get_driver()
     try:
         driver.get(OLIVEYOUNG_URL)
         time.sleep(3)
+        scroll_to_bottom(driver)  # 끝까지 스크롤
         soup = BeautifulSoup(driver.page_source, "html.parser")
     finally:
         driver.quit()
