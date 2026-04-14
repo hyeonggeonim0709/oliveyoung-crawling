@@ -59,15 +59,16 @@ def get_driver():
 
 
 def scroll_to_bottom(driver):
-    """페이지 끝까지 스크롤해서 모든 상품 로딩"""
-    last_height = driver.execute_script("return document.body.scrollHeight")
-    while True:
+    """페이지 끝까지 여러 번 스크롤해서 모든 상품 로딩"""
+    for _ in range(20):  # 최대 20번 스크롤
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)  # 로딩 대기
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:  # 더 이상 로딩 없으면 종료
-            break
-        last_height = new_height
+        time.sleep(2)
+
+    # 스크롤 후 맨 위로 올렸다가 다시 내리기 (lazy load 트리거)
+    driver.execute_script("window.scrollTo(0, 0);")
+    time.sleep(1)
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(2)
     print("  ✅ 스크롤 완료")
 
 
@@ -76,8 +77,8 @@ def crawl_image_urls():
     driver = get_driver()
     try:
         driver.get(OLIVEYOUNG_URL)
-        time.sleep(3)
-        scroll_to_bottom(driver)  # 끝까지 스크롤
+        time.sleep(5)  # 초기 로딩 대기 시간 증가
+        scroll_to_bottom(driver)
         soup = BeautifulSoup(driver.page_source, "html.parser")
     finally:
         driver.quit()
