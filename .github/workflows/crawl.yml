@@ -1,0 +1,32 @@
+name: 올리브영 오특 썸네일 크롤링
+
+on:
+  schedule:
+    - cron: '30 1 * * *'  # 매일 한국시간 10:30 (UTC 01:30)
+  workflow_dispatch:       # 수동 실행 버튼
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 레포 체크아웃
+        uses: actions/checkout@v3
+
+      - name: Python 설치
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Chrome 설치
+        uses: browser-actions/setup-chrome@v1
+
+      - name: 의존성 설치
+        run: pip install selenium webdriver-manager requests beautifulsoup4 pillow
+
+      - name: 크롤링 실행
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_PAGE_ID: ${{ secrets.NOTION_PAGE_ID }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: python oliveyoung_crawl.py
